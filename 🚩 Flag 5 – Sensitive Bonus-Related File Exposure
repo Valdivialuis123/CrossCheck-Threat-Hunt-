@@ -1,0 +1,31 @@
+---
+
+## 🚩 Flag 5 – Sensitive Bonus-Related File Exposure
+
+### 🎯 Objective
+Identify the first sensitive year-end bonus-related file accessed during exploratory activity.
+
+### 🧾 Summary
+This step scopes analysis to the compromised endpoint **sys1-dept** and user **5y51-d3p7**, then hunts file telemetry for early indicators of bonus/compensation discovery activity. Results are sorted chronologically to identify the first instance of bonus-related data exposure.
+
+✅ Finding  
+The first sensitive year-end bonus-related file accessed during exploration was:  
+FileName: **BonusMatrix_Draft_v3.xlsx**
+
+The presence of a **Recent Files shortcut artifact** confirms the file was opened or reviewed by the user, indicating exposure of confidential bonus data.
+
+### 🔍 KQL Query Used
+```kql
+DeviceFileEvents
+| where DeviceName == "sys1-dept"
+| where InitiatingProcessAccountName == "5y51-d3p7"
+| where FileName contains "bonus"
+   or FileName contains "pay"
+   or FileName contains "comp"
+   or FileName contains "review"
+   or FileName contains "performance"
+   or FolderPath contains "HR"
+   or FolderPath contains "CorpHR"
+| project Timestamp, ActionType, FileName, FolderPath,
+          InitiatingProcessAccountName, InitiatingProcessFileName
+| order by Timestamp asc
