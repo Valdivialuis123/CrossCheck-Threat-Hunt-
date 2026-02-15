@@ -12,3 +12,4 @@ DeviceProcessEvents
 | where isnotempty(InitiatingProcessRemoteSessionIP)
 | project Timestamp, DeviceName, AccountName, InitiatingProcessRemoteSessionIP
 | order by Timestamp asc
+ 
