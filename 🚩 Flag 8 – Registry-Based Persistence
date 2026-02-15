@@ -1,0 +1,29 @@
+🚩 Flag 8 – Registry-Based Persistence
+
+### 🎯 Objective
+Identify evidence of persistence established via a user Run key.
+
+### 🧾 Summary
+This step checks for persistence mechanisms established through the Windows **Run** key, which can be used to automatically start attacker-controlled code when the user logs on.
+
+✅ Finding  
+A registry modification was observed under **Software\Microsoft\Windows\CurrentVersion\Run**, consistent with a Run-key persistence mechanism.
+
+### 🔎 What to Hunt
+Registry modifications under the standard user Run path that indicate an auto-start execution mechanism:
+
+`HKEY_CURRENT_USER\S-1-5-21-805396643-3920266184-3816603331-500\SOFTWARE\Microsoft\Windows\CurrentVersion\Run`
+
+### ❗ Why it matters
+Run-key persistence allows an attacker to maintain access across reboots and user logons, increasing the likelihood of repeated execution and long-term compromise.
+
+### 🔍 KQL Query Used
+```kql
+DeviceRegistryEvents
+| where TimeGenerated between (datetime(2025-12-01) .. datetime(2026-01-01))
+| where DeviceName == "sys1-dept"
+| where ActionType in ("RegistryValueSet","RegistryKeyCreated")
+| where RegistryKey has @"\Software\Microsoft\Windows\CurrentVersion\Run"
+| project TimeGenerated, DeviceName, ActionType, RegistryKey, RegistryValueName, RegistryValueData,
+          InitiatingProcessAccountName, InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessUniqueId, ReportId
+| order by TimeGenerated asc
