@@ -1,0 +1,31 @@
+🚩 Flag 18 – Approved Bonus Artifact Access on Second Endpoint
+
+### 🎯 Objective
+Confirm the approved bonus artifact is accessed again on the second endpoint.
+
+### 🧾 Summary
+This step validates whether the approved bonus artifact was accessed again from the secondary endpoint **main1-srvr**, indicating follow-on collection from a server-side repository. The hunt focuses on **SensitiveFileRead** activity and capturing the access evidence during the relevant time window.
+
+✅ Finding  
+Sensitive read activity on **main1-srvr** shows the approved bonus matrix was accessed again, consistent with an attempt to validate or re-collect finalized bonus data from the centralized source.
+
+### 🔎 What to Hunt
+Process evidence of file access to the approved artifact on the second device and capture the access timestamp.  
+Hint: Utilize previous findings; identify the creation time of the initiating process tied to this activity.
+
+### ❗ Why it matters
+Repeat access on the server suggests the actor is consolidating high-value compensation data and expanding impact beyond the original workstation, which increases scope and response urgency.
+
+### 🔍 KQL Query Used
+```kql
+let StartDate = datetime(2025-12-01);
+let EndDate = datetime(2025-12-05);
+
+DeviceEvents
+| where ActionType == "SensitiveFileRead"
+| where DeviceName == "main1-srvr"
+| where FileName contains "bonus"
+| where TimeGenerated between (StartDate .. EndDate)
+| sort by TimeGenerated desc
+🛡️ Detection Recommendation
+Enable and review detailed auditing on file servers for sensitive directories (SACLs), and alert on repeated reads of approved bonus/compensation artifacts—especially when initiated by unusual accounts or remote session contexts.
