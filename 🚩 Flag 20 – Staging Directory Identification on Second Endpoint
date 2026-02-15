@@ -1,0 +1,32 @@
+🚩 Flag 20 – Staging Directory Identification on Second Endpoint
+
+### 🎯 Objective
+Identify the directory used for consolidation of internal reference materials and archived content.
+
+### 🧾 Summary
+This step identifies where data was consolidated into an archive on **main1-srvr** by reviewing file events under the internal reference directory tree and extracting the full directory path for the staged archive artifact.
+
+✅ Finding  
+An archive named **YearEnd_ReviewPackage_2025.zip** was created within the internal reference directory structure on **main1-srvr**.
+
+Requested value: Provide the whole path containing the archived file:  
+Archive Path: **C:\Users\Main1-Srvr\Documents\InternalReferences\ArchiveBundles\YearEnd_ReviewPackage_2025.zip**
+
+### 🔎 What to Hunt
+File events under the internal reference directory tree and determine the full directory structure involved.
+
+### ❗ Why it matters
+This archive likely represents a final aggregation step, combining multiple data sources into a single transferable bundle and indicating the operation is nearing completion.
+
+### 🔍 KQL Query Used
+```kql
+let StartDate = datetime(2025-12-03);
+let EndDate = datetime(2025-12-05);
+
+DeviceFileEvents
+| where TimeGenerated between (StartDate .. EndDate)
+| where DeviceName == "main1-srvr"
+| where InitiatingProcessRemoteSessionDeviceName == "YE-FINANCEREVIE"
+| sort by TimeGenerated asc
+🛡️ Detection Recommendation
+Alert on creation of large archive files (e.g., >50MB) in non-standard server directories and correlate with remote session activity and subsequent outbound connections.
