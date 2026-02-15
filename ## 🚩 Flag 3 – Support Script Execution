@@ -1,0 +1,25 @@
+## 🚩 Flag 3 – Support Script Execution
+
+### 🎯 Objective
+Identify execution of a PowerShell script disguised as a legitimate support utility on the first endpoint.
+
+### 🧾 Summary
+This step investigates suspicious script execution on **sys1-dept**, focusing on PowerShell activity launched from user-writable locations that may indicate unauthorized tooling or initial execution of attacker scripts.
+
+✅ Finding  
+PowerShell was used to run a script from the user’s Downloads directory with execution policy bypass enabled:  
+`powershell.exe -ExecutionPolicy Bypass -File C:\Users\5y51-D3p7\Downloads\PayrollSupportTool.ps1`
+
+### ❗ Why it matters
+Execution of scripts from user-writable locations (like Downloads) with bypass flags is a common technique to run unauthorized code and often precedes persistence or additional tooling deployment.
+
+### 🔍 KQL Query Used
+```kql
+DeviceProcessEvents
+| where DeviceName == "sys1-dept"
+| where FileName =~ "powershell.exe"
+| where ProcessCommandLine contains "Downloads"
+| project Timestamp, AccountName, ProcessCommandLine
+| order by Timestamp asc
+🛡️ Detection Recommendation
+Monitor and alert on PowerShell execution with bypass parameters, especially when scripts are launched from Downloads/Documents/Desktop. Require signed scripts for administrative tooling where possible.
