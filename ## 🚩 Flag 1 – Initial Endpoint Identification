@@ -1,0 +1,21 @@
+## 🚩 Flag 1 – Initial Endpoint Identification
+
+### 🎯 Objective
+Determine which endpoint first shows activity tied to the user context involved in the chain.
+
+### 🧾 Summary
+During the December investigation window, telemetry that initially appeared routine was validated as part of a multi-stage sequence involving script execution, sensitive file access, staging, persistence, and outbound activity. To scope the incident, the date range was expanded to December 1–31, 2025 to ensure all relevant activity was captured.
+
+✅ Finding  
+The earliest device associated with the user 5y51-d3p7 was identified as sys1-dept.  
+DeviceName: **sys1-dept**
+
+### 🔍 KQL Query Used (account-to-device discovery)
+```kql
+DeviceProcessEvents
+| where TimeGenerated between (datetime(2025-12-01) .. datetime(2026-01-01))
+| where AccountName == "5y51-d3p7"
+   or InitiatingProcessAccountName == "5y51-d3p7"
+| summarize FirstSeen=min(TimeGenerated) by DeviceName
+| order by FirstSeen asc
+| take 10
