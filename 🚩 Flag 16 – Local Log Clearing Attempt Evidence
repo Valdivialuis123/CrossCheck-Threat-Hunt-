@@ -1,0 +1,33 @@
+🚩 Flag 16 – Local Log Clearing Attempt Evidence
+
+### 🎯 Objective
+Identify command-line evidence of attempted local log clearing.
+
+### 🧾 Summary
+This step hunts for process execution evidence of built-in utilities used to clear Windows event logs. The goal is to capture the **exact command line** used, which indicates an attempt to reduce forensic visibility on **sys1-dept**.
+
+✅ Finding  
+Process telemetry indicates use of **wevtutil.exe** on **sys1-dept**, consistent with an attempt to clear Windows event logs (including PowerShell Operational logging).
+
+Requested value: Provide the command value used to execute the exploit:  
+`"wevtutil.exe" cl Microsoft-Windows-PowerShell/Operational`
+
+### 🔎 What to Hunt
+Process creation for system utilities associated with clearing logs and capture the exact command line used.
+
+### ❗ Why it matters
+Log clearing is a common anti-forensics technique and often signals the attacker is trying to cover tracks near the end of an operation, making centralized logging and rapid containment critical.
+
+### 🔍 KQL Query Used (updated and focused)
+```kql
+DeviceProcessEvents
+| where TimeGenerated >= datetime(2025-12-03T07:26:00Z)
+| where DeviceName == "sys1-dept"
+| where FileName in~ ("wevtutil.exe","powershell.exe")
+| where ProcessCommandLine has_any ("wevtutil", " cl ", "Clear-EventLog")
+| project TimeGenerated, DeviceName, AccountName, FileName,
+          InitiatingProcessAccountName, InitiatingProcessParentFileName,
+          ProcessCommandLine, InitiatingProcessCommandLine
+| order by TimeGenerated desc
+🛡️ Detection Recommendation
+Forward security and PowerShell logs to a central SIEM and alert on wevtutil/log-clearing command lines, especially when executed from remote sessions or by non-admin user contexts.
