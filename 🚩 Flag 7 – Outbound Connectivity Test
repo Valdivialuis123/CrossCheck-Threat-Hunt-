@@ -1,0 +1,34 @@
+🚩 Flag 7 – Outbound Connectivity Test
+
+### 🎯 Objective
+Confirm that outbound access was tested prior to any attempted transfer.
+
+### 🧾 Summary
+This step validates whether the compromised endpoint **sys1-dept** could successfully reach external network resources using **PowerShell**, which is commonly used to test egress connectivity before data transfer or attacker communications.
+
+✅ Finding  
+Network telemetry shows a **PowerShell-initiated outbound connection** from **sys1-dept**, consistent with testing outbound (egress) connectivity prior to potential exfiltration.
+
+When was the first outbound connection attempt initiated?  
+First successful connection time: **2025-12-03T06:27:31.1857946Z**
+
+### 🔎 What to Hunt
+A PowerShell-driven network connection to a benign external endpoint and determine the earliest reach attempt.
+
+### ❗ Why it matters
+Outbound connectivity testing confirms the host has a viable path to communicate externally, increasing the likelihood that staged data could be transferred out of the environment.
+
+### 🔍 KQL Query Used
+```kql
+DeviceNetworkEvents
+| where TimeGenerated >= datetime(2025-12-01)
+| where DeviceName == "sys1-dept"
+| where InitiatingProcessAccountName == "5y51-d3p7"
+| where InitiatingProcessFileName =~ "powershell.exe" or InitiatingProcessCommandLine has "powershell"
+| where isnotempty(RemoteIP) or isnotempty(RemoteUrl)
+| project TimeGenerated, DeviceName, RemoteIP, RemoteUrl, RemotePort, Protocol,
+          InitiatingProcessFileName, InitiatingProcessParentFileName, InitiatingProcessCommandLine,
+          InitiatingProcessId, InitiatingProcessUniqueId, ReportId
+| order by TimeGenerated asc
+🛡️ Detection Recommendation
+Implement outbound egress controls (allowlisting) for workstations and servers, limit internet access to approved domains, and monitor PowerShell-initiated network connections for suspicious destinations.
