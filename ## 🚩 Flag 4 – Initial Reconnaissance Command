@@ -1,0 +1,45 @@
+---
+
+## 🚩 Flag 4 – Initial Reconnaissance Command
+
+### 🎯 Objective
+Identify the first reconnaissance action used to collect host and user context after initial access.
+
+### 🧾 Summary
+This step identifies the earliest discovery activity performed after initial access on **sys1-dept**, focusing on common reconnaissance commands used to enumerate user context and host information shortly after the suspicious PowerShell script execution.
+
+✅ Finding  
+The earliest discovery activity observed was execution of **whoami.exe /all**, used to enumerate the current user’s privileges, group memberships, and security context.  
+
+Answer: **First recon command attempted: whoami.exe /all**
+
+### ❗ Why it matters
+This is a common first-step discovery action that confirms the attacker has moved into environment enumeration and is assessing whether privilege escalation or lateral movement is feasible.
+
+### 🔍 KQL Query Used
+```kql
+let PS = 
+    DeviceProcessEvents
+    | where DeviceName == "sys1-dept"
+    | where FileName =~ "powershell.exe"
+    | where ProcessCommandLine has "PayrollSupportTool.ps1"
+    | summarize StartTime=min(Timestamp);
+DeviceProcessEvents
+| where DeviceName == "sys1-dept"
+| where Timestamp >= (toscalar(PS) - 2m) and Timestamp <= (toscalar(PS) + 30m)
+| where FileName in~ ("whoami.exe","hostname.exe","tasklist.exe","qwinsta.exe","query.exe","net.exe","net1.exe","ipconfig.exe","systeminfo.exe","nltest.exe","dsquery.exe","cmd.exe","powershell.exe")
+| extend Cmd = tolower(ProcessCommandLine)
+| where Cmd has "whoami"
+    or Cmd has "hostname"
+    or Cmd has "tasklist"
+    or Cmd has "qwinsta"
+    or Cmd has "query user"
+    or Cmd has "net user"
+    or Cmd has "net localgroup"
+    or Cmd has "net group"
+    or Cmd has "ipconfig"
+    or Cmd has "systeminfo"
+    or Cmd has "nltest"
+| project Timestamp, AccountName, FileName, ProcessCommandLine
+| order by Timestamp asc
+| take 10
