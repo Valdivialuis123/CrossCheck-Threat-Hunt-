@@ -1,0 +1,32 @@
+🚩 Flag 9 – Scheduled Task Persistence
+
+ 🎯 Objective
+Confirm a scheduled task was created or used to automate recurring execution.
+
+🧾 Summary
+This step investigates persistence established through **Windows Scheduled Tasks**, which attackers commonly use to run malicious scripts on a schedule (daily, at logon, etc.). This method can survive reboots and continue execution without user interaction.
+
+✅ Finding  
+A scheduled task named **BonusReviewAssist** was created to run a PowerShell script on a daily schedule, indicating an automated persistence mechanism using built-in Windows tooling (**schtasks.exe**).
+
+What was the Task Name value tied to this activity?  
+Task Name: **BonusReviewAssist**
+
+### 🔎 What to Hunt
+Scheduled task creation/execution via command line, focusing on the task name used.
+
+### ❗ Why it matters
+Scheduled tasks provide reliable, recurring execution and can survive reboots and basic cleanup actions, increasing the attacker’s ability to maintain access and re-run malicious activity over time.
+
+🛡️ Detection Recommendation
+Audit scheduled task creation and modification activity (including Windows Security Event ID 4698 where available). Alert on tasks that execute scripting engines (PowerShell, wscript, cmd) or reference user-writable paths (Downloads, AppData, Temp), and investigate task names that appear unusual or unrelated to normal business functions.
+
+### 🔍 KQL Query Used
+```kql
+DeviceProcessEvents
+| where TimeGenerated >= datetime(2025-12-01)
+| where DeviceName == "sys1-dept"
+| where FileName =~ "schtasks.exe" or ProcessCommandLine has "schtasks"
+| project TimeGenerated, DeviceName, AccountName, FileName, ProcessCommandLine, InitiatingProcessAccountName
+| order by TimeGenerated desc
+
