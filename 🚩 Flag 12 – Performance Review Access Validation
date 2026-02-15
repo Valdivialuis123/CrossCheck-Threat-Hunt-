@@ -1,0 +1,34 @@
+🚩 Flag 12 – Performance Review Access Validation
+
+### 🎯 Objective
+Confirm access to employee performance review material through user-level tooling.
+
+### 🧾 Summary
+This step validates whether employee performance review content was accessed on **sys1-dept** using user-level tooling (e.g., Notepad). The hunt focuses on process telemetry that references performance review directories and correlates access behavior across departments or remote session contexts.
+
+✅ Finding  
+Process telemetry on **sys1-dept** shows **Notepad** being used to open a performance review artifact located in the performance review directory, indicating direct user-driven access to employee review material.
+
+Requested value: Identify the timestamp of a process that points to access of a similar employee-related file:  
+Timestamp: **2025-12-03T07:25:15.6288106Z**
+
+Process command line observed:  
+`notepad.exe C:\Users\5y51-D3p7\HR\PerformanceReviews\Review_JavierR.lnk`
+
+### 🔎 What to Hunt
+Process telemetry showing access to the performance review directory and correlate repeated access behavior across departments/sessions.  
+Hints: Utilize previous findings; file may be in a different directory.
+
+### ❗ Why it matters
+This behavior demonstrates manual document inspection and helps confirm the scope of HR data exposure. Correlating repeated accesses across different accounts or remote session contexts can also indicate lateral movement or expanded credential misuse.
+
+### 🔍 KQL Query Used
+```kql
+DeviceProcessEvents
+| where TimeGenerated >= datetime(2025-12-01)
+| where DeviceName == "sys1-dept"
+| where (ProcessCommandLine has_any ("performance","review","employee","bonus","salary","compensation")
+        or FolderPath has_any ("\\PerformanceReviews\\","\\HRCorp\\","\\Compensation\\"))
+| order by TimeGenerated desc
+🛡️ Detection Recommendation
+Alert when basic editors (Notepad/WordPad) open files from sensitive HR paths, and prioritize investigations when activity occurs under remote sessions or accounts outside typical HR workflows.
