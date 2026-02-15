@@ -1,0 +1,32 @@
+🚩 Flag 6 – Data Staging Activity Confirmation
+
+### 🎯 Objective
+Confirm that sensitive data was prepared for movement by staging into an export/archive output.
+
+### 🧾 Summary
+This step validates **data staging behavior** by hunting for archive creation activity (e.g., **.zip** files) on **sys1-dept** after **2025-12-01**. Creating archives is a common “package it up for exfil” step because one compressed file is easier to move than many individual files. The resulting event also provides a pivot point to correlate the staging process with follow-on activity (process execution and outbound network connections).
+
+✅ Finding  
+Staging activity was confirmed via archive creation on **sys1-dept**.  
+The initiating unique process identifier tied to this staging activity was:  
+InitiatingProcessUniqueId: **2533274790396713**
+
+### 🔎 What to Hunt
+- File creation activity consistent with archived/exported content (**.zip**)  
+- Capture the **initiating process unique ID** from the archive creation event for pivots
+
+### 🔍 KQL Query Used (archive staging timeline)
+```kql
+DeviceFileEvents
+| where ActionType == "FileCreated"
+| where TimeGenerated >= datetime(2025-12-01)
+| where DeviceName == "sys1-dept"
+| where FileName has_any (".zip")
+| order by TimeGenerated asc
+❗ Why it matters
+Staging archives in user-accessible locations (Documents/Downloads) is a strong indicator of intent to exfiltrate. Detecting archive creation—especially when tied to scripting tools—can provide one of the last opportunities to contain the incident before data leaves the environment.
+🛡️ Detection Recommendation
+Alert when archive files (.zip/.7z/.rar) are created in user profile folders and correlate those events with:
+suspicious scripting activity (PowerShell)
+remote session context
+near-term outbound network connections
