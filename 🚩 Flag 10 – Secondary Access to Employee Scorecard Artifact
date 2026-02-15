@@ -1,0 +1,29 @@
+🚩 Flag 10 – Secondary Access to Employee Scorecard Artifact
+
+### 🎯 Objective
+Identify evidence that a different remote session context accessed an employee-related scorecard file.
+
+### 🧾 Summary
+This step confirms whether employee scorecard/performance-review artifacts were accessed from a **different remote session context** on **sys1-dept**, indicating possible lateral use of additional credentials and expanded scope beyond the original user activity.
+
+✅ Finding  
+File activity associated with employee scorecard/performance-review data was observed under a separate remote session context.  
+The other remote session user identified was: **YE-HELPDESKTECH**.
+
+### 🔎 What to Hunt
+File telemetry involving an employee scorecard artifact and determine which remote session device/user is associated.
+
+### ❗ Why it matters
+Access by an additional remote-session user suggests credential compromise or reuse across roles, which increases scope and complicates containment and recovery efforts.
+
+### 🔍 KQL Query Used
+```kql
+DeviceFileEvents
+| where TimeGenerated between (datetime(2025-12-01) .. datetime(2026-01-01))
+| where DeviceName == "sys1-dept"
+| where FileName has_any ("scorecard","performance","review","bonus")
+| where IsInitiatingProcessRemoteSession == true
+| summarize FirstSeen=min(TimeGenerated) by InitiatingProcessAccountName, InitiatingProcessRemoteSessionDeviceName, InitiatingProcessRemoteSessionIP
+| order by FirstSeen asc
+🛡️ Detection Recommendation
+Enforce least-privilege and role-based access controls so support accounts cannot access HR/Finance repositories. Add monitoring for remote-session file access to sensitive HR paths and alert when non-HR accounts interact with scorecard or performance-review artifacts.
