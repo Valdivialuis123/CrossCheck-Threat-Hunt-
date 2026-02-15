@@ -1,0 +1,36 @@
+🚩 Flag 17 – Second Endpoint Scope Confirmation
+
+### 🎯 Objective
+Identify the second endpoint involved in the chain based on similar telemetry patterns.
+
+### 🧾 Summary
+This step determines whether the intrusion expanded beyond **sys1-dept** by hunting for the same tooling and tradecraft (scripts, task names, staging artifacts) appearing on another endpoint—consistent with lateral movement to a higher-value system.
+
+✅ Finding  
+Process telemetry indicates the activity chain extended to a second device based on matching supporting indicators (staging artifacts, persistence references, and exfiltration tooling).
+
+Requested value: Identify the other compromised machine in question:  
+DeviceName: **main1-srvr**
+
+### 🔎 What to Hunt
+Process telemetry on the second device and confirm its device name for scoping.
+
+### ❗ Why it matters
+Compromise of an additional server increases incident scope and potential impact, requiring broader containment actions, credential resets, and expanded scoping across related hosts and accounts.
+
+### 🔍 KQL Query Used
+```kql
+DeviceProcessEvents
+| where TimeGenerated between (datetime(2025-12-01) .. datetime(2025-12-31))
+| where ProcessCommandLine has_any (
+    @"C:\programdata\exfiltratedata.ps1",
+    @"C:\Users\5y51-D3p7\Downloads\PayrollSupportTool.ps1",
+    "BonusReviewAssist",
+    "Q4Candidate_Pack.zip",
+    "export_stage.zip",
+    "employee-data-"
+)
+| summarize Hits=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by DeviceName
+| order by Hits desc
+🛡️ Detection Recommendation
+Restrict lateral movement paths to high-value servers through network segmentation and privileged access controls. Monitor for reuse of known script paths, task names, and staging artifacts across multiple endpoints to quickly identify spread.
