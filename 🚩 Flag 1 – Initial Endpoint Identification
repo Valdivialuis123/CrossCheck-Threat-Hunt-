@@ -18,4 +18,4 @@ DeviceProcessEvents
    or InitiatingProcessAccountName == "5y51-d3p7"
 | summarize FirstSeen=min(TimeGenerated) by DeviceName
 | order by FirstSeen asc
-| take 10
+| take 10 
