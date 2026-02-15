@@ -1,0 +1,33 @@
+🚩 Flag 15 – Outbound Transfer Attempt Timestamp
+
+### 🎯 Objective
+Confirm an outbound transfer attempt occurred after staging activity.
+
+### 🧾 Summary
+This step confirms whether an outbound transfer/egress test occurred **after data staging**, by reviewing network telemetry from **sys1-dept** and extracting the relevant timestamp associated with the outbound connection attempt.
+
+✅ Finding  
+Network telemetry shows an outbound connection from **sys1-dept** occurring shortly after the staging archive was created, consistent with a transfer or egress test prior to exfiltration.
+
+Requested value: Confirm whether an outbound connection was attempted and identify the timestamp:  
+Timestamp: **2025-12-03T07:26:28.5959592Z**
+
+### 🔎 What to Hunt
+Network events to a benign endpoint used for POST testing and extract the relevant timestamp.
+
+### ❗ Why it matters
+Post-staging outbound connectivity indicates the attacker attempted to move data externally, which elevates the incident severity and drives containment and notification actions.
+
+### 🔍 KQL Query Used
+```kql
+DeviceNetworkEvents
+| where DeviceName == "sys1-dept"
+| where TimeGenerated >= datetime(2025-12-03T07:26:00Z)
+| project TimeGenerated, RemoteUrl, RemoteIP, RemotePort, Protocol,
+          InitiatingProcessAccountName, InitiatingProcessFileName,
+          InitiatingProcessParentFileName, InitiatingProcessCommandLine,
+          InitiatingProcessUniqueId, ReportId
+| order by TimeGenerated asc
+| take 10
+🛡️ Detection Recommendation
+Alert on outbound POST activity and unusual outbound connections immediately following archive creation events, especially when initiated by PowerShell or other scripting utilities, and prioritize destinations that are new or uncategorized for the environment.
