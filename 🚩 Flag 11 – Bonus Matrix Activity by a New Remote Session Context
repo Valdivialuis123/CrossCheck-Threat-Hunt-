@@ -1,0 +1,28 @@
+ 🚩 Flag 11 – Bonus Matrix Activity by a New Remote Session Context
+
+### 🎯 Objective
+Identify another remote session device name that is associated with higher level related activities later in the chain.
+
+### 🧾 Summary
+This step hunts for file activity related to bonus payout/bonus matrix artifacts on **sys1-dept** and extracts remote session device metadata to determine whether a specialized departmental remote session was involved in accessing sensitive payout files.
+
+✅ Finding  
+Activity on **sys1-dept** shows the following remote session department interacting with bonus payout/bonus matrix–related files:  
+Remote session device name: **YE-HRPLANNER**
+
+### 🔎 What to Hunt
+File events related to bonus payout artifacts and extract the remote session device metadata.  
+Hint: Utilize previous findings.
+
+### ❗ Why it matters
+Use of a planning/HR remote session to access payout artifacts suggests the attacker is intentionally focusing on high-value business data and may be leveraging privileged departmental access to progress the intrusion.
+
+### 🔍 KQL Query Used
+```kql
+DeviceFileEvents
+| where TimeGenerated >= datetime(2025-12-01)
+| where DeviceName == "sys1-dept"
+| where isnotempty(InitiatingProcessRemoteSessionDeviceName)
+| order by TimeGenerated desc
+🛡️ Detection Recommendation
+Monitor and alert on lateral movement patterns where departmental accounts (e.g., HR/Planning) access payout or compensation files outside expected workflows. Enforce least privilege for these accounts and require stronger controls (MFA/conditional access) for remote sessions accessing sensitive repositories.
