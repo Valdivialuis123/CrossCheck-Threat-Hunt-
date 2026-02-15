@@ -27,3 +27,4 @@ DeviceRegistryEvents
 | project TimeGenerated, DeviceName, ActionType, RegistryKey, RegistryValueName, RegistryValueData,
           InitiatingProcessAccountName, InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessUniqueId, ReportId
 | order by TimeGenerated asc
+ 
