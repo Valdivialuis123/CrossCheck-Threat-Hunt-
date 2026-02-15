@@ -27,4 +27,4 @@ DeviceFileEvents
 | order by FirstSeen asc
 🛡️ Detection Recommendation
 Enforce least-privilege and role-based access controls so support accounts cannot access HR/Finance repositories. Add monitoring for remote-session file access to sensitive HR paths and alert when non-HR accounts interact with scorecard or performance-review artifacts.
- 
+  
