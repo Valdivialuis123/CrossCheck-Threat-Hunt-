@@ -1,0 +1,14 @@
+🚩 Flag 2 – Remote Session Source Attribution
+🎯 Objective
+Identify the remote session source information tied to the initiating access on the first endpoint.
+🔎 What to Hunt
+Remote session metadata (source IP) associated with early activity on sys1-dept.
+✅ Finding
+The remote session IP observed accessing the system was 192.168.0.110.
+InitiatingProcessRemoteSessionIP: 192.168.0.110
+🔍 KQL Query Used
+DeviceProcessEvents
+| where DeviceName == "sys1-dept"
+| where isnotempty(InitiatingProcessRemoteSessionIP)
+| project Timestamp, DeviceName, AccountName, InitiatingProcessRemoteSessionIP
+| order by Timestamp asc
