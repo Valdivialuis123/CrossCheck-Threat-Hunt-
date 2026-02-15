@@ -1,0 +1,32 @@
+🚩 Flag 22 – Outbound Connection Remote IP (Final Phase)
+
+### 🎯 Objective
+Identify the remote IP address associated with the final outbound connection attempt used to exfiltrate the staged data package.
+
+### 🧾 Summary
+This step identifies the remote destination contacted during the final phase by reviewing network telemetry on the second endpoint (**main1-srvr**) and filtering for connections initiated by common transfer utilities (PowerShell/curl/wget/etc.).
+
+✅ Finding  
+An outbound connection attempt consistent with data transfer activity was observed to the following remote destination:  
+RemoteIP: **54.83.21.156**
+
+### ❗ Why it matters
+This outbound destination provides a high-confidence indicator of attacker infrastructure and supports correlation between the staging event and the final network activity for attribution and containment.
+
+### 🔍 KQL Query Used
+```kql
+let StartDate = datetime(2025-12-01);
+let EndDate   = datetime(2025-12-05);
+let TargetDevice = "main1-srvr";  // <-- replace with the 2nd endpoint device name
+
+DeviceNetworkEvents
+| where TimeGenerated between (StartDate .. EndDate)
+| where DeviceName == TargetDevice
+| where ActionType in ("ConnectionSuccess","ConnectionAttempt")
+| where InitiatingProcessFileName has_any (
+  "powershell.exe","pwsh.exe","curl.exe","wget.exe","ftp.exe","scp.exe","nc.exe","ncat.exe","bitsadmin.exe"
+)
+| project TimeGenerated, DeviceName, InitiatingProcessFileName, RemoteIP, RemotePort, RemoteUrl, InitiatingProcessCommandLine
+| order by TimeGenerated asc
+🛡️ Detection Recommendation
+Restrict or monitor outbound connections from servers to untrusted public IP ranges, and alert on network connections initiated by scripting engines or transfer tools (PowerShell, curl, wget, scp, bitsadmin), especially following sensitive file staging activity.
