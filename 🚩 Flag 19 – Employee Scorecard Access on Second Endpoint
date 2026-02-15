@@ -1,0 +1,27 @@
+🚩 Flag 19 – Employee Scorecard Access on Second Endpoint
+
+### 🎯 Objective
+Determine whether Finance-associated remote access was used to reach employee scorecard data on the server.
+
+### 🧾 Summary
+This step attributes employee scorecard/performance artifact activity on **main1-srvr** to a specific **remote session device**, confirming whether departmental (Finance) remote access was involved in accessing HR-related materials.
+
+✅ Finding  
+Remote-session telemetry on **main1-srvr** identifies the following remote session device associated with activity involving employee scorecard/performance artifacts:
+
+Requested value (device name responsible for this activity): **YE-FINANCEREVIE**
+
+### ❗ Why it matters
+Attributing the activity to a specific remote session device helps confirm lateral use of departmental access and supports targeted containment actions (isolating the source endpoint and resetting impacted credentials).
+
+### 🔍 KQL Query Used (Option B)
+```kql
+DeviceFileEvents
+| where TimeGenerated between (datetime(2025-12-01) .. datetime(2026-01-01))
+| where DeviceName == "main1-srvr"
+| where isnotempty(InitiatingProcessRemoteSessionDeviceName)
+| summarize FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated), Hits=count()
+    by InitiatingProcessRemoteSessionDeviceName, InitiatingProcessRemoteSessionIP
+| order by Hits desc
+🛡️ Detection Recommendation
+Use privileged access workstations (PAWs) or controlled “jump boxes” for Finance/HR administrative activity. Monitor and alert when Finance/HR remote session devices access HR performance/scorecard repositories outside normal operational patterns.
