@@ -1,0 +1,34 @@
+
+## 🚩 Flag 21 – Staging Activity Timing on Second Endpoint
+
+### 🎯 Objective
+Determine when staging activity occurred during the final phase on the second endpoint.
+
+### 🧾 Summary
+This step confirms the exact **staging timestamp** on the second endpoint by extracting the most recent archive/packaging event within the staging/internal reference directory scope. This timestamp is used to correlate staging with subsequent outbound network activity during the final phase.
+
+✅ Finding  
+The identified **TimeGenerated/Timestamp** confirms exactly when the final staged data package was sealed in the staging/internal reference directory.
+
+Requested value: Now provide the timestamp when the staging activity occurred:  
+Timestamp: **2025-12-04T03:15:29.2597235Z**
+
+### 🔎 What to Hunt
+Timestamp of file events within the staging/internal reference directory scope.
+
+### ❗ Why it matters
+This timestamp is critical for correlating the file creation/packaging event with the subsequent outbound network connection, strengthening attribution and reconstructing the final exfiltration sequence.
+
+### 🔍 KQL Query Used
+Reused the query logic from Flag 20 and refined output to extract the exact TimeGenerated/Timestamp (latest staging package event):
+
+```kql
+DeviceFileEvents
+| where TimeGenerated between (datetime(2025-12-01) .. datetime(2026-01-01))
+| where DeviceName == "SECOND_ENDPOINT_HOST"
+| where FolderPath has "STAGING_DIR_KEYWORD"
+| where ActionType in ("FileCreated","FileRenamed")
+| top 1 by TimeGenerated desc
+| project TimeGenerated, DeviceName, InitiatingProcessFileName, InitiatingProcessParentFileName, InitiatingProcessCommandLine
+🛡️ Detection Recommendation
+Hunting Tip: Synchronize time sources (NTP) across the enterprise to ensure accurate forensic timelines and reliable correlation across endpoint and network telemetry.
