@@ -13,3 +13,4 @@ DeviceProcessEvents
 | project Timestamp, DeviceName, AccountName, InitiatingProcessRemoteSessionIP
 | order by Timestamp asc
  
+ 
